@@ -8,15 +8,18 @@ io.origins('*:*')
 var path = require('path');                    
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-// app.post('/login', (req, res) => {
-//   res.json({data:'heoll'})
+// app.get('/login', (req, res) => {
+//     res.json({data:'heoll'})
 // })
-app.get('/login', (req, res) => {
-    res.json({data:'heoll'})
-})
 var users = [];
 var chatMsg=[
 ];
+app.post('/login', (req, res) => {
+    res.send({data:!users.includes(req.body.data)})
+  })
+app.get('/prev', (req, res) => {
+    res.send({users,'chats':chatMsg})
+})
 io.on('connection', socket => {
     // console.log(io.sockets.sockets);
     socket.on('test', m => {
