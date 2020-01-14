@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
-import socketIOClient from "socket.io-client";
-let socket = socketIOClient("localhost:3001");
+import io from "socket.io-client";
+let socket = io();
 function App() {
   useEffect(() => {
     socket.emit("test")
