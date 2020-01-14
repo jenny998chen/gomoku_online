@@ -1,0 +1,12 @@
+{
+  "name": "gomoku-online",
+  "version": "1.0.0",
+  "description": "multiplayer game",
+  "scripts": {
+    "start": "node index.js",
+    "heroku-postbuild": "cd client && npm install && npm run build"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
