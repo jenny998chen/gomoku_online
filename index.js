@@ -3,7 +3,7 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3001;
-io.origins('*:*')
+// io.origins('*:*')
 // app.use(express.static('public'));
 var path = require('path');                    
 app.use(express.static(path.join(__dirname, 'client/build')));
@@ -20,7 +20,7 @@ var chatMsg=[
 io.on('connection', socket => {
     // console.log(io.sockets.sockets);
     socket.on('test', m => {
-        io.emit("test","hi")
+        io.emit("test","hii")
     });
     socket.on('join room', function(newroom){
       if(socket.room){
