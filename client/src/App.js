@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 // import logo from './logo.svg';
 import './App.css';
 import io from "socket.io-client";
-let socket = io();
+let socket = io('ws://localhost:3001');
 function App() {
   useEffect(() => {
     socket.emit("test")
