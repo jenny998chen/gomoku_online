@@ -12,10 +12,15 @@ const client = new MongoClient(uri, { useNewUrlParser: true });
 var collection;
 client.connect(err => {
   collection = client.db("User").collection("Jenny");
-//   collection.insertOne({a:1})
-  // perform actions on the collection object
 //   client.close();
 });
+
+// app.post("/personnel", (request, response) => {
+//     collection.insert(request.body, (error, result) => {
+//         if(error) return response.status(500).send(error);
+//         response.send(result.result);
+//     });
+// });
 
 
 
