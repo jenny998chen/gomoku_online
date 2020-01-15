@@ -3,7 +3,7 @@ import Messages from './Messages';
 import io from "socket.io-client";
 import styled,{ createGlobalStyle } from 'styled-components';
 
-let socket = io('ws://localhost:3001');
+let socket = io();
 
 const Login = styled.div`
   text-align:center;
