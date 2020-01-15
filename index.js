@@ -37,6 +37,7 @@ io.on('connection', socket => {
         }
     }
     socket.username=socket.id;
+    socket.emit("name",socket.id)
     socket.on('join room', function(newroom){
       if(socket.room){
         socket.leave(socket.room);
@@ -68,7 +69,6 @@ io.on('connection', socket => {
         rooms[socket.room].moves.push(m);
         io.to(socket.room).emit('user moved', m);
     });
-
     socket.on('disconnect', () => {
         removeUser(socket.username, socket.room)
     });

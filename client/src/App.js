@@ -32,8 +32,11 @@ function App() {
   const [showLogin, setShowLogin] = useState(true);
   const [user, setUser] = useState('');
   const [err, setErr] = useState(false);
-
+  
   useEffect(() => {
+    socket.on('name', n => {
+      setUser(n);
+    });
     setUser(socket.id);
     setShowLogin(false);
   }, []);
@@ -87,34 +90,8 @@ const Room = styled.aside`
     background:#f1f0f0;
   }
 `
-const Input = styled.div`
-  border-radius: 0.3em;
-  border: 1px solid grey;
-  padding: 0.5em 1em;
-  margin-right:0.5em;
-  flex-grow:1;
-  :focus {
-    border-color: rgb(0,132,180);
-  }
-  word-break:break-all;
-`;
-const Footer = styled.div`
-  display:flex;
-  margin:0.3em;
-`;
-const Button = styled.button`
-  align-self:flex-end;
-  border-radius: 0.3em;
-  background-color: green;
-  color:white;
-  text-transform: uppercase;
-  font-weight: 600;
-  padding: 0.5em 1em;
-  border:none;
-`;
 
 function Home({ user }) {
-  let inputRef = useRef(null);
   const [roomInp, setRoomInp] = useState('');
   const [users, setUsers] = useState([]);
   const [chats, setChats] = useState([]);
@@ -156,23 +133,8 @@ function Home({ user }) {
     });
   }, []);
 
-  function sendMsg() {
-    let input = inputRef.current;
-    if (input.textContent) {
-      socket.emit('chat message', { username: user, msg: input.textContent });
-      setChats(chats.concat({ self: true, username: user, msg: input.textContent }));
-      input.innerHTML = '';
-    }
-  }
-  function handleKeyDown(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      sendMsg();
-    }
-  }
 
   function joinRoom(r) {
-
     setRoom(r);
     socket.emit('join room', r);
     fetch("/room", {
@@ -189,6 +151,15 @@ function Home({ user }) {
       })
       setRoomInp('');
   }
+  let inputRef = useRef(null);
+  function sendMsg() {
+    let input = inputRef.current;
+    if (input.textContent) {
+      socket.emit('chat message', { username: user, msg: input.textContent });
+      setChats(chats.concat({ self: true, username: user, msg: input.textContent }));
+      input.innerHTML = '';
+    }
+  }
   return (
     <Layout>
       <Side><div>Me: {user}</div>
@@ -198,18 +169,8 @@ function Home({ user }) {
         {/* {users.map(u => <div key={u}>{u}</div>)} */}
       </Side>
       <Canvas player={player} moves={moves}/>
-      <Messages chats={chats} />
-      <Footer>
-        <Input
-          ref={inputRef}
-          contentEditable
-          onKeyDown={handleKeyDown}
-          // onBlur={() => setTyping(false)}
-        />
-        <Button onClick={sendMsg}>
-          send
-        </Button>
-      </Footer>
+      <Messages chats={chats} inputRef={inputRef} sendMsg={sendMsg}/>
+
     </Layout>
   );
 }
@@ -248,9 +209,7 @@ function Canvas({moves,player}){
         ctx.fill(); 
     }
     ctx.clearRect(0, 0, canv.width, canv.height);
-    // let ar=[];
     for (let x = 0; x < n; x++){
-      // ar[x] = []; 
       for(let y=0; y < n;y++){
         ctx.strokeRect(x*dim ,y*dim ,dim,dim);   
       }     
@@ -280,26 +239,12 @@ function Canvas({moves,player}){
       turn=(player===1);
     });
   }, [player]);
+  
   return (
     <Main >
         <Board width="840px" height="840px" ref={canvRef}/>
     </Main>
   );
 }
-
-// function App() {
-//   useEffect(() => {
-//     socket.emit("test")
-//     socket.on("test", data => console.log(data));
-//     fetch("/login")
-//         .then(res => res.text())
-//         .then(res => console.log(res));
-//   }, []);
-//   return (
-//     <div className="App">
-//       gomoku
-//     </div>
-//   );
-// }
 
 export default App;

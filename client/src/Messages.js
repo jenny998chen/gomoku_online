@@ -36,8 +36,41 @@ const Bubble = styled.div`
     : 'align-self: flex-start;background-color: #0084ff;border-radius:0.6em 0.6em 0.6em 0em;'
   }
 `;
-const Messages = ({ ref, chats }) => {
+const Input = styled.div`
+  border-radius: 0.3em;
+  border: 1px solid grey;
+  padding: 0.5em 1em;
+  margin-right:0.5em;
+  flex-grow:1;
+  :focus {
+    border-color: rgb(0,132,180);
+  }
+  word-break:break-all;
+`;
+const Footer = styled.div`
+  display:flex;
+  margin:0.3em;
+`;
+const Button = styled.button`
+  align-self:flex-end;
+  border-radius: 0.3em;
+  background-color: green;
+  color:white;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.5em 1em;
+  border:none;
+`;
+const Messages = ({sendMsg, inputRef, chats }) => {
   let chatRef = useRef(null);
+
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendMsg();
+    }
+  }
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTo({ behavior: 'smooth', top: chatRef.current.scrollHeight });
@@ -45,7 +78,8 @@ const Messages = ({ ref, chats }) => {
     }
   }, [chats]);
   return (
-    <Chat ref={ref}>
+      <>
+    <Chat ref={chatRef}>
       {chats.map(({ username, self, msg, action }, i) => (
         <Fragment key={i}>
           {action ? <Action>{username} {action}</Action>
@@ -58,6 +92,18 @@ const Messages = ({ ref, chats }) => {
         </Fragment>
       ))}
     </Chat>
+          <Footer>
+          <Input
+            ref={inputRef}
+            contentEditable
+            onKeyDown={handleKeyDown}
+            // onBlur={() => setTyping(false)}
+          />
+          <Button onClick={sendMsg}>
+            send
+          </Button>
+        </Footer>
+        </>
   )
 };
 export default Messages
