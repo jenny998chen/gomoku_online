@@ -176,14 +176,14 @@ function Home({ user }) {
     }
   }
 
-  function joinRoom() {
+  function joinRoom(r) {
 
-    setRoom(roomInp);
-    socket.emit('join room', roomInp);
+    setRoom(r);
+    socket.emit('join room', r);
     fetch("/room", {
       headers: { 'Content-Type': 'application/json' },
       method: "POST",
-      body: JSON.stringify({ data: roomInp })
+      body: JSON.stringify({ data: r })
     }).then(res => res.json())
       .then(res => {
         console.log(res);
@@ -197,8 +197,8 @@ function Home({ user }) {
   return (
     <Layout>
       <Side><div>Me: {user}</div>
-        <input value={roomInp} onKeyDown={e=>{if (e.key === 'Enter')joinRoom()}} onChange={e=>setRoomInp(e.target.value)}/>
-        <button onClick={joinRoom}>join room</button>
+        <input value={roomInp} onKeyDown={e=>{if (e.key === 'Enter')joinRoom(roomInp)}} onChange={e=>setRoomInp(e.target.value)}/>
+        <button onClick={()=>joinRoom(roomInp)}>join room</button>
         {rooms.map(u => <Room key={u} active={u==room} onClick={()=>joinRoom(u)}>{u}</Room>)}
         {/* {users.map(u => <div key={u}>{u}</div>)} */}
       </Side>
