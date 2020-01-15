@@ -1,7 +1,7 @@
 import React, { useEffect,useRef, useState,Fragment } from 'react';
 import Messages from './Messages';
 import io from "socket.io-client";
-import styled,{ createGlobalStyle } from 'styled-components';
+import styled from 'styled-components';
 
 let socket = io();
 
@@ -34,8 +34,7 @@ function App() {
   const [err, setErr] = useState(false);
 
   useEffect(() => {
-    setUser(socket.io.engine.id);
-    console.log(socket.io.engine.id)
+    setUser(socket.id);
     setShowLogin(false);
   }, []);
   function login(name) {
@@ -56,7 +55,6 @@ function App() {
   }
   return (
     <Fragment>
-      {/* <GlobalStyle /> */}
       {showLogin ?
         <Login>
           <div>What's your name?</div>
@@ -103,8 +101,6 @@ const Input = styled.div`
 const Footer = styled.div`
   display:flex;
   margin:0.3em;
-  // grid-column: 2;
-  // grid-row: 2;
 `;
 const Button = styled.button`
   align-self:flex-end;
@@ -132,14 +128,13 @@ function Home({ user }) {
       .then(res => {
         setRooms(res.rooms);
       })
-    // socket.emit('join room', 'newRoom');
-    // socket.emit('add user');
     socket.on('chat message', msg => {
       setChats(chats => chats.concat(msg));
     });
 
     socket.on('user joined', data => {
       console.log(data + ' joined');
+      console.log(socket.id)
       setChats(chats => chats.concat({ action: 'joined', username: data }));
       setUsers(users => users.concat(data));
     });
@@ -199,7 +194,7 @@ function Home({ user }) {
       <Side><div>Me: {user}</div>
         <input value={roomInp} onKeyDown={e=>{if (e.key === 'Enter')joinRoom(roomInp)}} onChange={e=>setRoomInp(e.target.value)}/>
         <button onClick={()=>joinRoom(roomInp)}>join room</button>
-        {rooms.map(u => <Room key={u} active={u==room} onClick={()=>joinRoom(u)}>{u}</Room>)}
+        {rooms.map(u => <Room key={u} active={u===room} onClick={()=>joinRoom(u)}>{u}</Room>)}
         {/* {users.map(u => <div key={u}>{u}</div>)} */}
       </Side>
       <Canvas player={player} moves={moves}/>
@@ -232,15 +227,26 @@ const Board = styled.canvas`
 
 function Canvas({moves,player}){
   const canvRef = useRef(null);
-  let n=14;
   useEffect(() => {
+
     console.log('shoud',player)
+    let n=14;
     let turn=false;
     const canv = canvRef.current;
     const ctx = canv.getContext('2d');
     
     let dim=canv.width/n;
-    
+    function makeMove(data){
+      const {x,y,player}=data;
+      if(player===1){
+        ctx.fillStyle = 'black';
+      }else if(player===2){
+        ctx.fillStyle = 'white';
+      }
+      ctx.beginPath();
+        ctx.arc(x*dim , y*dim , dim/2.5, 0, 2 * Math.PI);
+        ctx.fill(); 
+    }
     ctx.clearRect(0, 0, canv.width, canv.height);
     // let ar=[];
     for (let x = 0; x < n; x++){
@@ -250,15 +256,8 @@ function Canvas({moves,player}){
       }     
     }
     
-    for(let {x,y,player} of moves){
-      if(player==1){
-        ctx.fillStyle = 'black';
-      }else if(player==2){
-        ctx.fillStyle = 'white';
-      }
-      ctx.beginPath();
-        ctx.arc(x*dim , y*dim , dim/2.5, 0, 2 * Math.PI);
-        ctx.fill(); 
+    for(let m of moves){
+      makeMove(m) 
     }
 
     canv.addEventListener('mousedown', e => {
@@ -275,18 +274,10 @@ function Canvas({moves,player}){
       console.log(data);
       turn^=true;
       console.log(turn);
-      const {x,y,player}=data;
-      if(player==1){
-        ctx.fillStyle = 'black';
-      }else if(player==2){
-        ctx.fillStyle = 'white';
-      }
-      ctx.beginPath();
-        ctx.arc(x*dim , y*dim , dim/2.5, 0, 2 * Math.PI);
-        ctx.fill(); 
+      makeMove(data)
     });
     socket.on('ready', () => {
-      turn=(player==1);
+      turn=(player===1);
     });
   }, [player]);
   return (
