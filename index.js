@@ -3,6 +3,22 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3001;
+
+
+const MongoClient = require('mongodb').MongoClient;
+const uri = "mongodb+srv://Jen:1q2w3e@gomoku-prc9b.mongodb.net/test?retryWrites=true&w=majority";
+const client = new MongoClient(uri, { useNewUrlParser: true });
+
+var collection;
+client.connect(err => {
+  collection = client.db("User").collection("Jenny");
+//   collection.insertOne({a:1})
+  // perform actions on the collection object
+//   client.close();
+});
+
+
+
 io.origins('*:*')
 app.use(express.json())
 // app.use(express.static('public'));
@@ -18,6 +34,8 @@ app.get('/prev', (req, res) => {
 })
 app.post('/room', (req, res) => {
     // console.log(rooms[req.body.data])
+    collection.insertOne({data:req.body.data})
+
     res.send(rooms[req.body.data])
 })
 io.on('connection', socket => {

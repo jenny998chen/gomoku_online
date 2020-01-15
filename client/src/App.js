@@ -230,16 +230,14 @@ function Canvas({moves,player}){
       }
     });
     socket.on('user moved', data => {
-      console.log(data);
       turn^=true;
-      console.log(turn);
       makeMove(data)
     });
     socket.on('ready', () => {
       turn=(player===1);
     });
   }, [player]);
-  
+
   return (
     <Main >
         <Board width="840px" height="840px" ref={canvRef}/>
