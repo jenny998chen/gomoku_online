@@ -115,12 +115,20 @@ const Button = styled.button`
   color:white;
   padding: 0.5em;
   border:none;
+  border-radius:0 0.2em 0.2em 0;
+  
+  // white-space: nowrap;
+
 `;
 const Footer = styled.div`
   display:flex;
   margin:0.3em;
   input{
-    padding:0.2em 0;
+    width:0;
+    flex-grow:1;
+    padding:0.3em 0.5em;
+    border-radius:0.2em 0 0 0.2em;
+    border:1px solid lightgrey;
   }
 `;
 function Home({ user }) {
@@ -164,7 +172,6 @@ function Home({ user }) {
       setRooms(rooms => rooms.filter(i => i !== data))
     });
   }, []);
-
 
   function joinRoom(r) {
     setRoom(r);
@@ -229,7 +236,6 @@ const Board = styled.canvas`
 function Canvas({ moves, player }) {
   const canvRef = useRef(null);
   useEffect(() => {
-    // console.log('shoud', player)
     let n = 14;
     let turn = false;
     const canv = canvRef.current;
@@ -248,24 +254,24 @@ function Canvas({ moves, player }) {
       ctx.fill();
     }
     function setTurn(t) {
-      if (player == 1 || player == 2) {
+      if (player === 1 || player === 2) {
         turn = t;
         canv.style.cursor = turn ? "auto" : "not-allowed";
       }
     }
     canv.style.cursor = "not-allowed";
     ctx.clearRect(0, 0, canv.width, canv.height);
-    ctx.fillStyle = '#2C3E50';
-    ctx.translate(0.5, 0.5);
+    if(!player)ctx.translate(0.5, 0.5);
     // ctx.lineWidth = 0.5;
+    ctx.fillStyle = '#2C3E50';
     for (let x = 0; x < n; x++) {
       for (let y = 0; y < n; y++) {
         ctx.strokeRect(x * dim, y * dim, dim, dim);
       }
     }
     for (let m of moves)  makeMove(m);
-
-    canv.addEventListener('mousedown', e => {
+    
+    canv.onclick=e=>{
       console.log(turn, player)
       if (turn && player && player < 3) {
         let x = (e.offsetX + dim / 2) / dim | 0;
@@ -274,8 +280,7 @@ function Canvas({ moves, player }) {
           socket.emit("move", { x, y, player })
         }
       }
-    });
-
+    }
     socket.on('ready', () => {
       setTurn(player === 1);
     });
@@ -283,7 +288,7 @@ function Canvas({ moves, player }) {
       setTurn(!turn);
       makeMove(data)
     });
-  }, [player]);
+  }, [moves,player]);
 
   return (
     <Main >
