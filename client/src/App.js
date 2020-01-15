@@ -81,11 +81,12 @@ const Side = styled.aside`
   border-right:1px solid #C8C8C8;
   grid-row: 1 / span 2;
   padding:1em 0;
-  div{
-    padding:0.5em 1em;
-    :hover{
-      background:#f1f0f0;
-    }
+`
+const Room = styled.aside`
+  padding:0.5em 1em;
+  ${props => props.active && 'background:#f1f0f0;'}
+  :hover{
+    background:#f1f0f0;
   }
 `
 const Input = styled.div`
@@ -118,11 +119,12 @@ const Button = styled.button`
 
 function Home({ user }) {
   let inputRef = useRef(null);
+  const [roomInp, setRoomInp] = useState('');
   const [users, setUsers] = useState([]);
   const [chats, setChats] = useState([]);
   const [moves, setMoves] = useState([]);
-  const [typing, setTyping] = useState(false);
-  const [typingUsers, setTypingUsers] = useState([]);
+
+  const [room, setRoom] = useState('');
   const [rooms, setRooms] = useState([]);
   const [player, setPlayer] = useState(0);
   useEffect(() => {
@@ -136,11 +138,6 @@ function Home({ user }) {
       setChats(chats => chats.concat(msg));
     });
 
-    socket.on('typing', data => {
-      console.log(data);
-      setTypingUsers(typingUsers => (data.typing && data.username) ?
-        typingUsers.concat(data.username) : typingUsers.filter(i => i !== data.username));
-    });
     socket.on('user joined', data => {
       console.log(data + ' joined');
       setChats(chats => chats.concat({ action: 'joined', username: data }));
@@ -151,7 +148,6 @@ function Home({ user }) {
       if (data) {
         setChats(chats => chats.concat({ action: 'left', username: data }));
         setUsers(users => users.filter(i => i !== data));
-        setTypingUsers(typingUsers.filter(i => i !== data))
       }
     });
 
@@ -166,47 +162,48 @@ function Home({ user }) {
   }, []);
 
   function sendMsg() {
-    setTyping(false);
     let input = inputRef.current;
     if (input.textContent) {
       socket.emit('chat message', { username: user, msg: input.textContent });
       setChats(chats.concat({ self: true, username: user, msg: input.textContent }));
-      input.innerHTML = ''
+      input.innerHTML = '';
     }
   }
   function handleKeyDown(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
       sendMsg();
-    } else if (!typing) setTyping(true);
-  }
-  function createRoom(e) {
-    if (e.key === 'Enter') {
-      socket.emit('join room', e.target.value);
-      fetch("/room", {
-        headers: { 'Content-Type': 'application/json' },
-        method: "POST",
-        body: JSON.stringify({ data: e.target.value })
-      }).then(res => res.json())
-        .then(res => {
-          console.log(res);
-          setMoves(res.moves);
-          setUsers(res.users);
-          setChats(res.chats);
-          setPlayer(res.users.length);
-        })
     }
+  }
+
+  function joinRoom() {
+
+    setRoom(roomInp);
+    socket.emit('join room', roomInp);
+    fetch("/room", {
+      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      body: JSON.stringify({ data: roomInp })
+    }).then(res => res.json())
+      .then(res => {
+        console.log(res);
+        setMoves(res.moves);
+        setUsers(res.users);
+        setChats(res.chats);
+        setPlayer(res.users.length);
+      })
+      setRoomInp('');
   }
   return (
     <Layout>
       <Side><div>Me: {user}</div>
-        <input onKeyDown={createRoom}/>
-        <button onClick={createRoom}>join room</button>
-        {rooms.map(u => <div key={u}>{u}</div>)}
+        <input value={roomInp} onKeyDown={e=>{if (e.key === 'Enter')joinRoom()}} onChange={e=>setRoomInp(e.target.value)}/>
+        <button onClick={joinRoom}>join room</button>
+        {rooms.map(u => <Room key={u} active={u==room} onClick={()=>joinRoom(u)}>{u}</Room>)}
         {/* {users.map(u => <div key={u}>{u}</div>)} */}
       </Side>
       <Canvas player={player} moves={moves}/>
-      <Messages typingUsers={typingUsers} chats={chats} />
+      <Messages chats={chats} />
       <Footer>
         <Input
           ref={inputRef}

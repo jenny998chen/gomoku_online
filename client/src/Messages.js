@@ -71,7 +71,7 @@ const Bubble = styled.div`
     : 'align-self: flex-start;background-color: #0084ff;border-radius:0.6em 0.6em 0.6em 0em;'
   }
 `;
-const Messages = ({ ref, typingUsers, chats }) => {
+const Messages = ({ ref, chats }) => {
   let chatRef = useRef(null);
   useEffect(() => {
     if (chatRef.current) {
@@ -92,14 +92,6 @@ const Messages = ({ ref, typingUsers, chats }) => {
           }
         </Fragment>
       ))}
-      {
-        typingUsers.map((u, i) => (
-          <Fragment key={i}>
-            <Name right={false}>{u}</Name>
-            <Bubble right={false}><Thinking /></Bubble>
-          </Fragment>
-        ))
-      }
     </Chat>
   )
 };

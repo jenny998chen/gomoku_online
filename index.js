@@ -18,7 +18,7 @@ app.get('/prev', (req, res) => {
 })
 app.post('/room', (req, res) => {
     // console.log(rooms[req.body.data])
-    res.json(rooms[req.body.data])
+    res.send(rooms[req.body.data])
 })
 io.on('connection', socket => {
     // console.log(io.sockets.sockets);
