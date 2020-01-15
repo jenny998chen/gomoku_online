@@ -199,7 +199,6 @@ function Home({ user }) {
         <div>Guest: {user}</div>
       </Head>
       <Side>
-        {/* <Room>Guest: {user}</Room> */}
         <Footer>
           <input
             value={roomInp}
@@ -222,16 +221,15 @@ const Main = styled.main`
 `
 const Board = styled.canvas`
   // background-color: grey;
-  width:801px;
-  height:801px;
+  width:720px;
+  height:720px;
   margin:auto;
 `;
 
 function Canvas({ moves, player }) {
   const canvRef = useRef(null);
   useEffect(() => {
-
-    console.log('shoud', player)
+    // console.log('shoud', player)
     let n = 14;
     let turn = false;
     const canv = canvRef.current;
@@ -249,6 +247,13 @@ function Canvas({ moves, player }) {
       ctx.arc(x * dim, y * dim, dim / 2.5, 0, 2 * Math.PI);
       ctx.fill();
     }
+    function setTurn(t) {
+      if (player == 1 || player == 2) {
+        turn = t;
+        canv.style.cursor = turn ? "auto" : "not-allowed";
+      }
+    }
+    canv.style.cursor = "not-allowed";
     ctx.clearRect(0, 0, canv.width, canv.height);
     ctx.fillStyle = '#2C3E50';
     ctx.translate(0.5, 0.5);
@@ -258,17 +263,7 @@ function Canvas({ moves, player }) {
         ctx.strokeRect(x * dim, y * dim, dim, dim);
       }
     }
-    // for (let i = 0; i <= n; i++) {
-    //   ctx.beginPath();
-    //   ctx.moveTo(0, i*dim);
-    //   ctx.lineTo(n*dim, i*dim);
-    //   ctx.stroke();
-    // }
-
-
-    for (let m of moves) {
-      makeMove(m)
-    }
+    for (let m of moves)  makeMove(m);
 
     canv.addEventListener('mousedown', e => {
       console.log(turn, player)
@@ -280,18 +275,19 @@ function Canvas({ moves, player }) {
         }
       }
     });
-    socket.on('user moved', data => {
-      turn ^= true;
-      makeMove(data)
-    });
+
     socket.on('ready', () => {
-      turn = (player === 1);
+      setTurn(player === 1);
+    });
+    socket.on('user moved', data => {
+      setTurn(!turn);
+      makeMove(data)
     });
   }, [player]);
 
   return (
     <Main >
-      <Board width="801px" height="801px" ref={canvRef} />
+      <Board width="721px" height="721px" ref={canvRef} />
     </Main>
   );
 }
