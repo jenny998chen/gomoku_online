@@ -4,9 +4,9 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3001;
 
-
+require('dotenv').config()
 const MongoClient = require('mongodb').MongoClient;
-const uri = "mongodb+srv://Jen:1q2w3e@gomoku-prc9b.mongodb.net/test?retryWrites=true&w=majority";
+const uri = process.env.PROD_MONGODB;
 const client = new MongoClient(uri, { useNewUrlParser: true });
 
 var collection;
