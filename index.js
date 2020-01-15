@@ -4,67 +4,72 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3001;
 io.origins('*:*')
+app.use(express.json())
 // app.use(express.static('public'));
 var path = require('path');                    
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-// app.get('/login', (req, res) => {
-//     res.json({data:'heoll'})
-// })
-var users = [];
-var chatMsg=[
-];
+var rooms = {}
 app.post('/login', (req, res) => {
     res.send({data:!users.includes(req.body.data)})
   })
 app.get('/prev', (req, res) => {
-    res.send({users,'chats':chatMsg})
+    res.send({rooms:Object.keys(rooms)})
 })
+app.post('/room', (req, res) => {
+    // console.log(rooms[req.body.data])
+    res.json(rooms[req.body.data])
+})
+
 io.on('connection', socket => {
     // console.log(io.sockets.sockets);
-    socket.on('test', m => {
-        io.emit("test","hii")
-    });
+    function removeUser(user, r){
+        console.log(rooms)
+        if(rooms[r].users.length==1){
+            delete rooms[r];
+            io.emit('room deleted', r);
+        }else{
+            console.log(rooms[r].users,user)
+            rooms[r].users=rooms[r].users.filter(i => i !== user)
+            console.log(rooms[r].users)
+        }
+        socket.broadcast.to(r).emit('user left', user);
+    }
+    socket.username=socket.id;
     socket.on('join room', function(newroom){
       if(socket.room){
         socket.leave(socket.room);
+        removeUser(socket.username, socket.room);
       }
-      // join new room, received as function parameter
-      // console.log(socket.room,socket.rooms)
       socket.join(newroom);
-      socket.room = newroom;
-  
-  
-      io.in(newroom).clients((err , clients) => {
-        console.log(clients)
-      });
-      // io.emit('messssageage', "this is a test"); //sending to all clients, include sender
+      socket.broadcast.to(newroom).emit('user joined', socket.username);
+
+    //   io.to('room42').emit('hello', "to all clients in 'room42' room");
       // io.in('game').emit('message', 'cool game'); 
-      // io.sockets.in('room1').emit('function', {foo:bar});
-      console.log(socket.room,socket.rooms)
-      socket.broadcast.to(newroom).emit('updatechat', socket.id+' joined');
-      // socket.room = newroom;
-      
+    //   console.log(socket.room,io.sockets.adapter.rooms)
+      if(newroom in rooms){
+        rooms[newroom].users.push(socket.username);
+        if(rooms[newroom].users.length==2)io.to(newroom).emit('ready');
+      }else{
+        rooms[newroom]={chats:[],moves:[],users:[socket.username]};
+        io.emit('room added', newroom);
+      }
+      socket.room = newroom;
+    //   io.clients[sessionID].send()
+      // io.to(socket#id).emit('hey')
     });
     socket.on('chat message', function(msg){
-      chatMsg.push(msg);
-      socket.broadcast.emit('chat message', msg);
+        rooms[socket.room].chats.push(msg);
+      socket.broadcast.to(socket.room).emit('chat message', msg);
     });
-    socket.on('add user', name => {
-      socket.emit('prev',{users,'chats':chatMsg});
-      socket.username = name;
-      users.push(name);
-      socket.broadcast.emit('user joined', name);
+    socket.on('move', m => {
+        console.log(m)
+        rooms[socket.room].moves.push(m);
+        io.to(socket.room).emit('user moved', m);
     });
-    socket.on('typing', data => {
-      socket.broadcast.emit('typing', {
-        typing: data,
-        username: socket.username
-      });
-    });
+
     socket.on('disconnect', () => {
-      socket.broadcast.emit('user left', socket.username);
-      users=users.filter(i => i !== socket.username);
+        removeUser(socket.username, socket.room)
     });
   });
   server.listen(port);
