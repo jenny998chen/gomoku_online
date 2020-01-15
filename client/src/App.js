@@ -245,9 +245,9 @@ function Canvas({moves,player}){
     let dim=canv.width/n;
     
     ctx.clearRect(0, 0, canv.width, canv.height);
-    let ar=[];
+    // let ar=[];
     for (let x = 0; x < n; x++){
-      ar[x] = []; 
+      // ar[x] = []; 
       for(let y=0; y < n;y++){
         ctx.strokeRect(x*dim ,y*dim ,dim,dim);   
       }     

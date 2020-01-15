@@ -20,20 +20,21 @@ app.post('/room', (req, res) => {
     // console.log(rooms[req.body.data])
     res.json(rooms[req.body.data])
 })
-
 io.on('connection', socket => {
     // console.log(io.sockets.sockets);
     function removeUser(user, r){
         console.log(rooms)
-        if(rooms[r].users.length==1){
-            delete rooms[r];
-            io.emit('room deleted', r);
-        }else{
-            console.log(rooms[r].users,user)
-            rooms[r].users=rooms[r].users.filter(i => i !== user)
-            console.log(rooms[r].users)
+        if(rooms[r]){
+            if(rooms[r].users.length==1){
+                delete rooms[r];
+                io.emit('room deleted', r);
+            }else{
+                console.log(rooms[r].users,user)
+                rooms[r].users=rooms[r].users.filter(i => i !== user)
+                console.log(rooms[r].users)
+            }
+            socket.broadcast.to(r).emit('user left', user);
         }
-        socket.broadcast.to(r).emit('user left', user);
     }
     socket.username=socket.id;
     socket.on('join room', function(newroom){
@@ -47,7 +48,7 @@ io.on('connection', socket => {
     //   io.to('room42').emit('hello', "to all clients in 'room42' room");
       // io.in('game').emit('message', 'cool game'); 
     //   console.log(socket.room,io.sockets.adapter.rooms)
-      if(newroom in rooms){
+      if(rooms.hasOwnProperty(newroom)){
         rooms[newroom].users.push(socket.username);
         if(rooms[newroom].users.length==2)io.to(newroom).emit('ready');
       }else{
