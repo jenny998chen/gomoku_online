@@ -1,4 +1,4 @@
-import React, { useEffect,useRef,Fragment } from 'react';
+import React, { useEffect, useRef, Fragment } from 'react';
 import styled from 'styled-components';
 
 
@@ -40,7 +40,7 @@ const Input = styled.div`
   border-radius: 0.3em;
   border: 1px solid grey;
   padding: 0.5em 1em;
-  margin-right:0.5em;
+  margin-right:0.2em;
   flex-grow:1;
   :focus {
     border-color: rgb(0,132,180);
@@ -54,14 +54,12 @@ const Footer = styled.div`
 const Button = styled.button`
   align-self:flex-end;
   border-radius: 0.3em;
-  background-color: green;
+  background-color: #0084ff;
   color:white;
-  text-transform: uppercase;
-  font-weight: 600;
   padding: 0.5em 1em;
   border:none;
 `;
-const Messages = ({sendMsg, inputRef, chats }) => {
+const Messages = ({ sendMsg, inputRef, chats }) => {
   let chatRef = useRef(null);
 
 
@@ -78,32 +76,32 @@ const Messages = ({sendMsg, inputRef, chats }) => {
     }
   }, [chats]);
   return (
-      <>
-    <Chat ref={chatRef}>
-      {chats.map(({ username, self, msg, action }, i) => (
-        <Fragment key={i}>
-          {action ? <Action>{username} {action}</Action>
-            :
-            <Fragment>
-              <Name right={self}>{username}</Name>
-              <Bubble right={self}>{msg}</Bubble>
-            </Fragment>
-          }
-        </Fragment>
-      ))}
-    </Chat>
-          <Footer>
-          <Input
-            ref={inputRef}
-            contentEditable
-            onKeyDown={handleKeyDown}
-            // onBlur={() => setTyping(false)}
-          />
-          <Button onClick={sendMsg}>
-            send
+    <>
+      <Chat ref={chatRef}>
+        {chats.map(({ username, self, msg, action }, i) => (
+          <Fragment key={i}>
+            {action ? <Action>{username} {action}</Action>
+              :
+              <Fragment>
+                <Name right={self}>{username}</Name>
+                <Bubble right={self}>{msg}</Bubble>
+              </Fragment>
+            }
+          </Fragment>
+        ))}
+      </Chat>
+      <Footer>
+        <Input
+          ref={inputRef}
+          contentEditable
+          onKeyDown={handleKeyDown}
+        // onBlur={() => setTyping(false)}
+        />
+        <Button onClick={sendMsg}>
+          Send
           </Button>
-        </Footer>
-        </>
+      </Footer>
+    </>
   )
 };
 export default Messages

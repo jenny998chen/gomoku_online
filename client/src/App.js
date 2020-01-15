@@ -1,4 +1,4 @@
-import React, { useEffect,useRef, useState,Fragment } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Messages from './Messages';
 import io from "socket.io-client";
 import styled from 'styled-components';
@@ -32,7 +32,7 @@ function App() {
   const [showLogin, setShowLogin] = useState(true);
   const [user, setUser] = useState('');
   const [err, setErr] = useState(false);
-  
+
   useEffect(() => {
     socket.on('name', n => {
       setUser(n);
@@ -57,7 +57,7 @@ function App() {
       })
   }
   return (
-    <Fragment>
+    <>
       {showLogin ?
         <Login>
           <div>What's your name?</div>
@@ -66,31 +66,63 @@ function App() {
         </Login>
         :
         <Home user={user} />
-       }
-    </Fragment>
+      }
+    </>
   );
 }
 const Layout = styled.div`
   height:100%;
   display:grid;
   grid-template-columns:350px 1fr 350px ;
-  grid-template-rows:1fr auto;
+  grid-template-rows:auto 1fr auto;
   overflow: hidden;
   border-right:1px solid #C8C8C8;
 `
 const Side = styled.aside`
   border-right:1px solid #C8C8C8;
-  grid-row: 1 / span 2;
+  grid-row: span 2;
   padding:1em 0;
+  background:#eff0f1;
 `
 const Room = styled.aside`
   padding:0.5em 1em;
-  ${props => props.active && 'background:#f1f0f0;'}
+  ${props => props.active && 'background:lightgrey;'}
   :hover{
-    background:#f1f0f0;
+    // background:#f1f0f0;
+    background:grey;
   }
 `
 
+const Head = styled.header`
+  padding: 0.6em;
+  grid-column: span 3;
+  display: flex;
+  align-items: center;
+  color: white;
+  background-color: #2C3E50;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+`;
+const Title = styled.div`
+  flex-grow:1;
+  text-align:center;
+  font-weight:600;
+  font-size:1.2em;
+`;
+const Button = styled.button`
+  // align-self:flex-end;
+  // border-radius: 0.3em;
+  background-color: #0084ff;
+  color:white;
+  padding: 0.5em;
+  border:none;
+`;
+const Footer = styled.div`
+  display:flex;
+  margin:0.3em;
+  input{
+    padding:0.2em 0;
+  }
+`;
 function Home({ user }) {
   const [roomInp, setRoomInp] = useState('');
   const [users, setUsers] = useState([]);
@@ -149,7 +181,7 @@ function Home({ user }) {
         setChats(res.chats);
         setPlayer(res.users.length);
       })
-      setRoomInp('');
+    setRoomInp('');
   }
   let inputRef = useRef(null);
   function sendMsg() {
@@ -162,85 +194,104 @@ function Home({ user }) {
   }
   return (
     <Layout>
-      <Side><div>Me: {user}</div>
-        <input value={roomInp} onKeyDown={e=>{if (e.key === 'Enter')joinRoom(roomInp)}} onChange={e=>setRoomInp(e.target.value)}/>
-        <button onClick={()=>joinRoom(roomInp)}>join room</button>
-        {rooms.map(u => <Room key={u} active={u===room} onClick={()=>joinRoom(u)}>{u}</Room>)}
+      <Head>
+        <Title>Gomoku Online</Title>
+        <div>Guest: {user}</div>
+      </Head>
+      <Side>
+        {/* <Room>Guest: {user}</Room> */}
+        <Footer>
+          <input
+            value={roomInp}
+            onKeyDown={e => { if (e.key === 'Enter') joinRoom(roomInp) }}
+            onChange={e => setRoomInp(e.target.value)} />
+          <Button onClick={() => joinRoom(roomInp)}>Join Room</Button>
+        </Footer>
+        {rooms.map(u => <Room key={u} active={u === room} onClick={() => joinRoom(u)}>{u}</Room>)}
         {/* {users.map(u => <div key={u}>{u}</div>)} */}
       </Side>
-      <Canvas player={player} moves={moves}/>
-      <Messages chats={chats} inputRef={inputRef} sendMsg={sendMsg}/>
-
+      <Canvas player={player} moves={moves} />
+      <Messages chats={chats} inputRef={inputRef} sendMsg={sendMsg} />
     </Layout>
   );
 }
 const Main = styled.main`
   border-right:1px solid #C8C8C8;
-  grid-row: 1 / span 2;
+  grid-row: span 2;
   display:grid;
 `
 const Board = styled.canvas`
-  background-color: green;
-  width:840px;
-  height:840px;
+  // background-color: grey;
+  width:801px;
+  height:801px;
   margin:auto;
 `;
 
-function Canvas({moves,player}){
+function Canvas({ moves, player }) {
   const canvRef = useRef(null);
   useEffect(() => {
 
-    console.log('shoud',player)
-    let n=14;
-    let turn=false;
+    console.log('shoud', player)
+    let n = 14;
+    let turn = false;
     const canv = canvRef.current;
     const ctx = canv.getContext('2d');
-    
-    let dim=canv.width/n;
-    function makeMove(data){
-      const {x,y,player}=data;
-      if(player===1){
-        ctx.fillStyle = 'black';
-      }else if(player===2){
-        ctx.fillStyle = 'white';
+
+    let dim = (canv.width - 1) / n;
+    function makeMove(data) {
+      const { x, y, player } = data;
+      if (player === 1) {
+        ctx.fillStyle = '#2C3E50';
+      } else if (player === 2) {
+        ctx.fillStyle = '#4FBD9C';
       }
       ctx.beginPath();
-        ctx.arc(x*dim , y*dim , dim/2.5, 0, 2 * Math.PI);
-        ctx.fill(); 
+      ctx.arc(x * dim, y * dim, dim / 2.5, 0, 2 * Math.PI);
+      ctx.fill();
     }
     ctx.clearRect(0, 0, canv.width, canv.height);
-    for (let x = 0; x < n; x++){
-      for(let y=0; y < n;y++){
-        ctx.strokeRect(x*dim ,y*dim ,dim,dim);   
-      }     
+    ctx.fillStyle = '#2C3E50';
+    ctx.translate(0.5, 0.5);
+    // ctx.lineWidth = 0.5;
+    for (let x = 0; x < n; x++) {
+      for (let y = 0; y < n; y++) {
+        ctx.strokeRect(x * dim, y * dim, dim, dim);
+      }
     }
-    
-    for(let m of moves){
-      makeMove(m) 
+    // for (let i = 0; i <= n; i++) {
+    //   ctx.beginPath();
+    //   ctx.moveTo(0, i*dim);
+    //   ctx.lineTo(n*dim, i*dim);
+    //   ctx.stroke();
+    // }
+
+
+    for (let m of moves) {
+      makeMove(m)
     }
 
     canv.addEventListener('mousedown', e => {
-      console.log(turn,player)
-      if(turn && player && player<3){
-        let x=(e.offsetX+dim/2)/dim|0;
-        let y=(e.offsetY+dim/2)/dim|0;
-        if(0<x&&x<n && 0<y&&y<n){
-          socket.emit("move",{x,y,player})
+      console.log(turn, player)
+      if (turn && player && player < 3) {
+        let x = (e.offsetX + dim / 2) / dim | 0;
+        let y = (e.offsetY + dim / 2) / dim | 0;
+        if (0 < x && x < n && 0 < y && y < n) {
+          socket.emit("move", { x, y, player })
         }
       }
     });
     socket.on('user moved', data => {
-      turn^=true;
+      turn ^= true;
       makeMove(data)
     });
     socket.on('ready', () => {
-      turn=(player===1);
+      turn = (player === 1);
     });
   }, [player]);
 
   return (
     <Main >
-        <Board width="840px" height="840px" ref={canvRef}/>
+      <Board width="801px" height="801px" ref={canvRef} />
     </Main>
   );
 }
