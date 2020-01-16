@@ -6,69 +6,16 @@ import styled from 'styled-components';
 
 let socket = io();
 
-// const Login = styled.div`
-//   text-align:center;
-//   margin: auto;
-//   display: inline-block;
-//   div{
-//     font-size: 1.3rem;
-//     font-weight: 600;
-//     color:rgb(56,56,56);
-//   }
-//   input{
-//     text-align:center;
-//     font-weight: 500;
-//     margin:0.6em;
-//     padding:0.4em 1em;
-//     border:none;
-//     border-bottom:2px solid rgb(56,56,56);
-//   }
-//   span{
-//     font-size: 0.85rem;
-//     display:block;
-//     color: #D8000C;
-//   }
-// `;
 function App() {
-  // const [showLogin, setShowLogin] = useState(true);
   const [user, setUser] = useState('');
-  // const [err, setErr] = useState(false);
-
   useEffect(() => {
     socket.on('name', n => {
       setUser(n);
     });
     setUser(socket.id);
-    // setShowLogin(false);
   }, []);
-  // function login(name) {
-  //   fetch("/login", {
-  //     headers: { 'Content-Type': 'application/json' },
-  //     method: "POST",
-  //     body: JSON.stringify({ data: name })
-  //   }).then(res => res.json())
-  //     .then(res => {
-  //       if (res.data) {
-  //         setUser(name);
-  //         socket.emit('add user', name);
-  //         setShowLogin(false);
-  //       } else {
-  //         setErr(true);
-  //       }
-  //     })
-  // }
   return (
-    <>
-      {/* {showLogin ?
-        <Login>
-          <div>What's your name?</div>
-          <input onKeyDown={e => { if (e.key === 'Enter') login(e.target.value) }} />
-          {err && <span>username already exist! try again</span>}
-        </Login>
-        : */}
-        <Home user={user} />
-      {/* } */}
-    </>
+    <Home user={user} />
   );
 }
 const Layout = styled.div`
@@ -224,11 +171,10 @@ function Home({ user }) {
         )}
         {/* {users.map(u => <div key={u}>{u}</div>)} */}
       </Side>
-      <Canvas player={player} moves={moves} users={users} socket={socket}/>
+      <Canvas player={player} moves={moves} users={users} socket={socket} />
       <Messages chats={chats} inputRef={inputRef} sendMsg={sendMsg} />
     </Layout>
   );
 }
-
 
 export default App;

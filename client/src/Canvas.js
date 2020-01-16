@@ -84,14 +84,11 @@ export default function Canvas({ moves, player, users, socket }) {
       makeMove(data)
     });
   }, [moves, player]);
-  // useEffect(() => {
-  //   setReady(false);
-  // }, [moves]);
 
   return (
     <Main >
       <div style={{ margin: 'auto' }}>
-        {users.length &&
+        {!users.length ||
           <Players>
             <span><Circle c="#2C3E50" /> {users[0]}</span>
             vs
