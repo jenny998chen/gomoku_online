@@ -253,10 +253,7 @@ const Players = styled.div`
 `;
 function Canvas({ moves, player, users }) {
   const canvRef = useRef(null);
-  const [ready, setReady] = useState(false);
   useEffect(() => {
-    // setReady(false);
-    console.log(ready)
     let n = 14;
     let turn = false;
     const canv = canvRef.current;
@@ -304,7 +301,7 @@ function Canvas({ moves, player, users }) {
     }
     socket.on('ready', () => {
       setTurn(player === 1);
-      setReady(true);
+      // setReady(true);
     });
     socket.on('user moved', data => {
       setTurn(!turn);
@@ -318,7 +315,7 @@ function Canvas({ moves, player, users }) {
   return (
     <Main >
       <div style={{ margin: 'auto' }}>
-        {ready &&
+        {users.length>=2 &&
           <Players>
             <span><Circle c="#2C3E50" /> {users[0]}</span>
             vs
