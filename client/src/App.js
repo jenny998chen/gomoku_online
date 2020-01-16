@@ -85,10 +85,12 @@ const Side = styled.aside`
   background:#eff0f1;
 `
 const Room = styled.aside`
-  padding:0.5em 1em;
-  ${props => props.active && 'background:lightgrey;'}
+  padding:1em 1.5em;
+  ${props => props.active &&
+    `background:lightgrey;
+     pointer-events:none;
+    `}
   :hover{
-    // background:#f1f0f0;
     background:grey;
   }
 `
@@ -116,13 +118,12 @@ const Button = styled.button`
   padding: 0.5em;
   border:none;
   border-radius:0 0.2em 0.2em 0;
-  
   // white-space: nowrap;
-
 `;
 const Footer = styled.div`
   display:flex;
   margin:0.3em;
+  margin-bottom:0.6em;
   input{
     width:0;
     flex-grow:1;
@@ -213,10 +214,14 @@ function Home({ user }) {
             onChange={e => setRoomInp(e.target.value)} />
           <Button onClick={() => joinRoom(roomInp)}>Join Room</Button>
         </Footer>
-        {rooms.map(u => <Room key={u} active={u === room} onClick={() => joinRoom(u)}>{u}</Room>)}
+        {rooms.map((r, i) =>
+          <Room key={r} active={r === room} onClick={() => joinRoom(r)}>
+            {i + 1}. {r}
+          </Room>
+        )}
         {/* {users.map(u => <div key={u}>{u}</div>)} */}
       </Side>
-      <Canvas player={player} moves={moves} />
+      <Canvas player={player} moves={moves} users={users} />
       <Messages chats={chats} inputRef={inputRef} sendMsg={sendMsg} />
     </Layout>
   );
@@ -230,12 +235,28 @@ const Board = styled.canvas`
   // background-color: grey;
   width:720px;
   height:720px;
-  margin:auto;
+  margin:0.8em 0;
 `;
-
-function Canvas({ moves, player }) {
+const Circle = styled.span`
+  height: 25px;
+  width: 25px;
+  background-color: ${p => p.c};
+  border-radius: 50%;
+  display: inline-block;
+`;
+const Players = styled.div`
+  display: flex;
+  justify-content: space-between;
+  span{
+    vertical-align: middle;
+  }
+`;
+function Canvas({ moves, player, users }) {
   const canvRef = useRef(null);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
+    // setReady(false);
+    console.log(ready)
     let n = 14;
     let turn = false;
     const canv = canvRef.current;
@@ -261,7 +282,7 @@ function Canvas({ moves, player }) {
     }
     canv.style.cursor = "not-allowed";
     ctx.clearRect(0, 0, canv.width, canv.height);
-    if(!player)ctx.translate(0.5, 0.5);
+    // if (player) ctx.translate(0.5, 0.5);
     // ctx.lineWidth = 0.5;
     ctx.fillStyle = '#2C3E50';
     for (let x = 0; x < n; x++) {
@@ -269,9 +290,9 @@ function Canvas({ moves, player }) {
         ctx.strokeRect(x * dim, y * dim, dim, dim);
       }
     }
-    for (let m of moves)  makeMove(m);
-    
-    canv.onclick=e=>{
+    for (let m of moves) makeMove(m);
+
+    canv.onclick = e => {
       console.log(turn, player)
       if (turn && player && player < 3) {
         let x = (e.offsetX + dim / 2) / dim | 0;
@@ -283,16 +304,29 @@ function Canvas({ moves, player }) {
     }
     socket.on('ready', () => {
       setTurn(player === 1);
+      setReady(true);
     });
     socket.on('user moved', data => {
       setTurn(!turn);
       makeMove(data)
     });
-  }, [moves,player]);
+  }, [moves, player]);
+  // useEffect(() => {
+  //   setReady(false);
+  // }, [moves]);
 
   return (
     <Main >
-      <Board width="721px" height="721px" ref={canvRef} />
+      <div style={{ margin: 'auto' }}>
+        {ready &&
+          <Players>
+            <span><Circle c="#2C3E50" /> {users[0]}</span>
+            vs
+            <span> <Circle c="#4FBD9C" /> {users[1]}</span>
+          </Players>
+        }
+        <Board width="721px" height="721px" ref={canvRef} />
+      </div>
     </Main>
   );
 }
