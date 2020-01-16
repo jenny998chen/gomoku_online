@@ -1,72 +1,73 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Messages from './Messages';
+import Canvas from './Canvas';
 import io from "socket.io-client";
 import styled from 'styled-components';
 
 let socket = io();
 
-const Login = styled.div`
-  text-align:center;
-  margin: auto;
-  display: inline-block;
-  div{
-    font-size: 1.3rem;
-    font-weight: 600;
-    color:rgb(56,56,56);
-  }
-  input{
-    text-align:center;
-    font-weight: 500;
-    margin:0.6em;
-    padding:0.4em 1em;
-    border:none;
-    border-bottom:2px solid rgb(56,56,56);
-  }
-  span{
-    font-size: 0.85rem;
-    display:block;
-    color: #D8000C;
-  }
-`;
+// const Login = styled.div`
+//   text-align:center;
+//   margin: auto;
+//   display: inline-block;
+//   div{
+//     font-size: 1.3rem;
+//     font-weight: 600;
+//     color:rgb(56,56,56);
+//   }
+//   input{
+//     text-align:center;
+//     font-weight: 500;
+//     margin:0.6em;
+//     padding:0.4em 1em;
+//     border:none;
+//     border-bottom:2px solid rgb(56,56,56);
+//   }
+//   span{
+//     font-size: 0.85rem;
+//     display:block;
+//     color: #D8000C;
+//   }
+// `;
 function App() {
-  const [showLogin, setShowLogin] = useState(true);
+  // const [showLogin, setShowLogin] = useState(true);
   const [user, setUser] = useState('');
-  const [err, setErr] = useState(false);
+  // const [err, setErr] = useState(false);
 
   useEffect(() => {
     socket.on('name', n => {
       setUser(n);
     });
     setUser(socket.id);
-    setShowLogin(false);
+    // setShowLogin(false);
   }, []);
-  function login(name) {
-    fetch("/login", {
-      headers: { 'Content-Type': 'application/json' },
-      method: "POST",
-      body: JSON.stringify({ data: name })
-    }).then(res => res.json())
-      .then(res => {
-        if (res.data) {
-          setUser(name);
-          socket.emit('add user', name);
-          setShowLogin(false);
-        } else {
-          setErr(true);
-        }
-      })
-  }
+  // function login(name) {
+  //   fetch("/login", {
+  //     headers: { 'Content-Type': 'application/json' },
+  //     method: "POST",
+  //     body: JSON.stringify({ data: name })
+  //   }).then(res => res.json())
+  //     .then(res => {
+  //       if (res.data) {
+  //         setUser(name);
+  //         socket.emit('add user', name);
+  //         setShowLogin(false);
+  //       } else {
+  //         setErr(true);
+  //       }
+  //     })
+  // }
   return (
     <>
-      {showLogin ?
+      {/* {showLogin ?
         <Login>
           <div>What's your name?</div>
           <input onKeyDown={e => { if (e.key === 'Enter') login(e.target.value) }} />
           {err && <span>username already exist! try again</span>}
         </Login>
-        :
+        : */}
         <Home user={user} />
-      }
+      {/* } */}
     </>
   );
 }
@@ -175,21 +176,23 @@ function Home({ user }) {
   }, []);
 
   function joinRoom(r) {
-    setRoom(r);
-    socket.emit('join room', r);
-    fetch("/room", {
-      headers: { 'Content-Type': 'application/json' },
-      method: "POST",
-      body: JSON.stringify({ data: r })
-    }).then(res => res.json())
-      .then(res => {
-        console.log(res);
-        setMoves(res.moves);
-        setUsers(res.users);
-        setChats(res.chats);
-        setPlayer(res.users.length);
-      })
-    setRoomInp('');
+    if (r) {
+      setRoom(r);
+      socket.emit('join room', r);
+      fetch("/room", {
+        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        body: JSON.stringify({ data: r })
+      }).then(res => res.json())
+        .then(res => {
+          console.log(res);
+          setMoves(res.moves);
+          setUsers(res.users);
+          setChats(res.chats);
+          setPlayer(res.users.length);
+        })
+      setRoomInp('');
+    }
   }
   let inputRef = useRef(null);
   function sendMsg() {
@@ -221,111 +224,11 @@ function Home({ user }) {
         )}
         {/* {users.map(u => <div key={u}>{u}</div>)} */}
       </Side>
-      <Canvas player={player} moves={moves} users={users} />
+      <Canvas player={player} moves={moves} users={users} socket={socket}/>
       <Messages chats={chats} inputRef={inputRef} sendMsg={sendMsg} />
     </Layout>
   );
 }
-const Main = styled.main`
-  border-right:1px solid #C8C8C8;
-  grid-row: span 2;
-  display:grid;
-`
-const Board = styled.canvas`
-  // background-color: grey;
-  width:720px;
-  height:720px;
-  margin:0.8em 0;
-`;
-const Circle = styled.span`
-  height: 25px;
-  width: 25px;
-  background-color: ${p => p.c};
-  border-radius: 50%;
-  display: inline-block;
-`;
-const Players = styled.div`
-  display: flex;
-  justify-content: space-between;
-  span{
-    vertical-align: middle;
-  }
-`;
-function Canvas({ moves, player, users }) {
-  const canvRef = useRef(null);
-  useEffect(() => {
-    let n = 14;
-    let turn = false;
-    const canv = canvRef.current;
-    const ctx = canv.getContext('2d');
 
-    let dim = (canv.width - 1) / n;
-    function makeMove(data) {
-      const { x, y, player } = data;
-      if (player === 1) {
-        ctx.fillStyle = '#2C3E50';
-      } else if (player === 2) {
-        ctx.fillStyle = '#4FBD9C';
-      }
-      ctx.beginPath();
-      ctx.arc(x * dim, y * dim, dim / 2.5, 0, 2 * Math.PI);
-      ctx.fill();
-    }
-    function setTurn(t) {
-      if (player === 1 || player === 2) {
-        turn = t;
-        canv.style.cursor = turn ? "auto" : "not-allowed";
-      }
-    }
-    canv.style.cursor = "not-allowed";
-    ctx.clearRect(0, 0, canv.width, canv.height);
-    // if (player) ctx.translate(0.5, 0.5);
-    // ctx.lineWidth = 0.5;
-    ctx.fillStyle = '#2C3E50';
-    for (let x = 0; x < n; x++) {
-      for (let y = 0; y < n; y++) {
-        ctx.strokeRect(x * dim, y * dim, dim, dim);
-      }
-    }
-    for (let m of moves) makeMove(m);
-
-    canv.onclick = e => {
-      console.log(turn, player)
-      if (turn && player && player < 3) {
-        let x = (e.offsetX + dim / 2) / dim | 0;
-        let y = (e.offsetY + dim / 2) / dim | 0;
-        if (0 < x && x < n && 0 < y && y < n) {
-          socket.emit("move", { x, y, player })
-        }
-      }
-    }
-    socket.on('ready', () => {
-      setTurn(player === 1);
-      // setReady(true);
-    });
-    socket.on('user moved', data => {
-      setTurn(!turn);
-      makeMove(data)
-    });
-  }, [moves, player]);
-  // useEffect(() => {
-  //   setReady(false);
-  // }, [moves]);
-
-  return (
-    <Main >
-      <div style={{ margin: 'auto' }}>
-        {users.length>=2 &&
-          <Players>
-            <span><Circle c="#2C3E50" /> {users[0]}</span>
-            vs
-            <span> <Circle c="#4FBD9C" /> {users[1]}</span>
-          </Players>
-        }
-        <Board width="721px" height="721px" ref={canvRef} />
-      </div>
-    </Main>
-  );
-}
 
 export default App;

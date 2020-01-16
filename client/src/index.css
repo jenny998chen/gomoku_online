@@ -30,4 +30,5 @@ html{
 }
 button,input{
   font-size: 1em;
+  cursor: pointer;
 }
